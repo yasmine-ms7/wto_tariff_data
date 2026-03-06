@@ -1,5 +1,6 @@
-import logging
 import re
+import time
+import logging
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -84,7 +85,7 @@ def apply_filters(driver, wait: WebDriverWait):
 
     # Wait for table
     wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
-    print("Filtering completed successfully.")
+    logging.info("Filtering completed successfully.")
 
 
 # =============================
@@ -97,14 +98,14 @@ def open_download_modal(driver, wait: WebDriverWait):
         EC.element_to_be_clickable((By.XPATH, "//button[contains(.,'Download data')]"))
     )
     driver.execute_script("arguments[0].click();", download_button)
-    print("Download button clicked.")
+    logging.info("Download button clicked.")
 
     wait.until(
         EC.presence_of_element_located(
             (By.XPATH, "//div[contains(@class,'fixed') or contains(@class,'modal')]")
         )
     )
-    print("Download popup appeared.")
+    logging.info("Download popup appeared.")
 
 
 def fill_email(wait: WebDriverWait, email: str):
@@ -113,16 +114,16 @@ def fill_email(wait: WebDriverWait, email: str):
     )
     email_input.clear()
     email_input.send_keys(email)
-    print("Email filled successfully.")
+    logging.info("Email filled successfully.")
 
 
 def switch_into_iframe_if_present(driver):
     iframes = driver.find_elements(By.TAG_NAME, "iframe")
     if iframes:
-        print("Iframe detected. Switching into iframe.")
+        logging.info("Iframe detected. Switching into iframe.")
         driver.switch_to.frame(iframes[-1])
     else:
-        print("No iframe detected.")
+        logging.info("No iframe detected.")
 
 
 # =============================
@@ -153,7 +154,7 @@ def _solve_captcha_text(captcha_text: str) -> int:
 
 
 def fill_captcha(driver, wait: WebDriverWait):
-    print("Waiting for captcha...")
+    logging.info("Waiting for captcha...")
 
     # Wait until at least one captcha element exists
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.bg-green-100")))
@@ -169,17 +170,17 @@ def fill_captcha(driver, wait: WebDriverWait):
     wait.until(lambda d: captcha_box.text.strip() != "")
 
     captcha_text = captcha_box.text.strip()
-    print("Captcha raw text:", captcha_text)
+    logging.info("Captcha raw text:", captcha_text)
 
     result = _solve_captcha_text(captcha_text)
-    print("Captcha solved:", result)
+    logging.info("Captcha solved:", result)
 
     captcha_input = wait.until(
         EC.element_to_be_clickable((By.ID, "mountedActionsData.0.captcha"))
     )
     captcha_input.clear()
     captcha_input.send_keys(str(result))
-    print("Captcha filled.")
+    logging.info("Captcha filled.")
 
 
 # =============================
@@ -199,7 +200,7 @@ def ensure_terms_checked(driver, wait: WebDriverWait):
     if not terms_checkbox.is_selected():
         raise Exception("Terms checkbox could not be checked.")
 
-    print("Terms checkbox confirmed checked.")
+    logging.info("Terms checkbox confirmed checked.")
 
 
 # =============================
@@ -223,12 +224,11 @@ def click_visible_submit_and_wait_success(driver, wait: WebDriverWait):
     )
     # If you REALLY want 0 sleeps, remove it and increase waits below;
     # but in practice this 0.2-0.5s helps stability a lot.
-    import time
 
     time.sleep(0.5)
 
     driver.execute_script("arguments[0].click();", submit_button)
-    print("VISIBLE submit clicked.")
+    logging.info("VISIBLE submit clicked.")
 
     # Wait for toast
     wait.until(
@@ -236,7 +236,7 @@ def click_visible_submit_and_wait_success(driver, wait: WebDriverWait):
             (By.XPATH, "//*[contains(text(),'Email submitted')]")
         )
     )
-    print("Success popup detected.")
+    logging.info("Success popup detected.")
 
 
 # =============================
@@ -244,7 +244,8 @@ def click_visible_submit_and_wait_success(driver, wait: WebDriverWait):
 # =============================
 
 
-def run(email: str = "bot+stage@data.dnext.io"):
+def run(email: str = "bot+stage@data.dnext.io") -> None:
+    """Run the WTO tariff scraping workflow."""
     driver, wait = start_driver(timeout=30)
     try:
         driver.get("https://ttd.wto.org/en/download/six-digit")
