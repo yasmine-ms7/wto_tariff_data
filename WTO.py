@@ -1,11 +1,14 @@
+import logging
 import re
 import undetected_chromedriver as uc
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 # =============================
 # DRIVER
 # =============================
@@ -18,10 +21,7 @@ def start_driver(timeout: int = 30):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
 
-    driver = uc.Chrome(
-        options=options,
-        version_main=145
-    )
+    driver = uc.Chrome(options=options, version_main=145)
 
     wait = WebDriverWait(driver, timeout)
     return driver, wait
@@ -259,7 +259,7 @@ def run(email: str = "bot+stage@data.dnext.io"):
         ensure_terms_checked(driver, wait)
         click_visible_submit_and_wait_success(driver, wait)
 
-        print("Done ✅")
+        logging.info("Done")
 
     finally:
         # If you want the browser to stay open for debugging, comment this out.
